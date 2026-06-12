@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TBL Practice Quiz</title>
+
+    <style>
+        /* --- CSS Variables & Themes --- */
+        :root {
+            --transition-speed: 0.3s;
+            --font-main: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            
+            /* Default Feedback Colors (Fallback for custom themes) */
+            --feedback-success-bg: #064e3b;
+            --feedback-success-border: #059669;
+            --feedback-success-text: #a7f3d0;
+            --feedback-error-bg: #7f1d1d;
+            --feedback-error-border: #dc2626;
+            --feedback-error-text: #fecaca;
+        }
+
+        [data-theme="dark"] {
+            --bg-body: #1e293b; --bg-card: #334155; --bg-header: #0f172a;
+            --text-main: #f1f5f9; --text-muted: #94a3b8; --text-accent: #38bdf8;
+            --border-color: #475569; --highlight-bg: #475569;
+            --button-bg: #38bdf8; --button-text: #0f172a; --button-hover: #0ea5e9;
+        }
+
+        [data-theme="light"] {
+            --bg-body: #f3f4f6; --bg-card: #ffffff; --bg-header: #ffffff;
+            --text-main: #1f2937; --text-muted: #6b7280; --text-accent: #2563eb;
+            --border-color: #e5e7eb; --highlight-bg: #f3f4f6;
+            --button-bg: #2563eb; --button-text: #ffffff; --button-hover: #1d4ed8;
+            --feedback-success-bg: #ecfdf5; --feedback-success-border: #34d399; --feedback-success-text: #065f46;
+            --feedback-error-bg: #fef2f2; --feedback-error-border: #f87171; --feedback-error-text: #991b1b;
+        }
+
+        [data-theme="midnight"] {
+            --bg-body: #000000; --bg-card: #000000; --bg-header: #000000;
+            --text-main: #e0e0e0; --text-muted: #888888; --text-accent: #90caf9;
+            --border-color: #333333; --highlight-bg: #1a1a1a;
+            --button-bg: #90caf9; --button-text: #000000; --button-hover: #42a5f5;
+            --feedback-success-bg: #051b11; --feedback-success-border: #0f5132; --feedback-success-text: #75b798;
+            --feedback-error-bg: #2c0b0e; --feedback-error-border: #842029; --feedback-error-text: #ea868f;
+        }
+
+        [data-theme="legacy-dark"] {
+            --bg-body: #2d343e; --bg-card: #3c424f; --bg-header: #3c424f;
+            --text-main: #e8e6e3; --text-muted: #b0c4de; --text-accent: #8ab4f8;
+            --border-color: #555; --highlight-bg: #454c5a;
+            --button-bg: #8ab4f8; --button-text: #202124; --button-hover: #a3c5f9;
+            --feedback-success-bg: #344e41; --feedback-success-border: #52b788; --feedback-success-text: #c7f9cc;
+            --feedback-error-bg: #5e2129; --feedback-error-border: #a4133c; --feedback-error-text: #f8d7da;
+        }
+
+        [data-theme="sepia"] {
+            --bg-body: #f4ecd8; --bg-card: #fdf6e3; --bg-header: #e4d5b7;
+            --text-main: #433422; --text-muted: #7c6f5a; --text-accent: #a05a2c;
+            --border-color: #d3c4a5; --highlight-bg: #ebe1c9;
+            --button-bg: #a05a2c; --button-text: #fdf6e3; --button-hover: #864822;
+            --feedback-success-bg: #e6f4ea; --feedback-success-border: #8ab893; --feedback-success-text: #2e4c35;
+            --feedback-error-bg: #f9e3e3; --feedback-error-border: #d48f8f; --feedback-error-text: #5c2b2b;
+        }
+
+        [data-theme="contrast"] {
+            --bg-body: #000000; --bg-card: #000000; --bg-header: #000000;
+            --text-main: #ffffff; --text-muted: #dddddd; --text-accent: #ffff00;
+            --border-color: #ffffff; --highlight-bg: #333333;
+            --button-bg: #ffff00; --button-text: #000000; --button-hover: #e6e600;
+            --feedback-success-bg: #000000; --feedback-success-border: #00ff00; --feedback-success-text: #00ff00;
+            --feedback-error-bg: #000000; --feedback-error-border: #ff0000; --feedback-error-text: #ff0000;
+        }
+
+        /* --- Global Reset & Layout --- */
+        * { box-sizing: border-box; }
+        
+        body {
+            font-family: var(--font-main);
+            margin: 0;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+            line-height: 1.6;
+        }
+
+        /* --- Header --- */
+        header {
+            background-color: var(--bg-header);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        header.unpinned { position: relative; box-shadow: none; }
+
+        .header-top {
+            display: flex; justify-content: space-between; align-items: center;
+            width: 100%; flex-wrap: wrap; gap: 15px;
+        }
+
+        header h1 { font-size: 1.5rem; margin: 0; color: var(--text-accent); font-weight: 700; }
+
+        .controls-wrapper { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+        /* --- Custom Theme Builder --- */
+        .custom-builder {
+            display: none; flex-wrap: wrap; gap: 15px;
+            background-color: var(--bg-card); padding: 10px 15px;
+            border-radius: 8px; border: 1px solid var(--border-color);
+            margin-top: 5px; font-size: 0.85rem; animation: fadeIn 0.3s;
+            width: 100%; justify-content: flex-end;
+        }
+        .custom-builder.active { display: flex; }
+        .color-picker-group { display: flex; align-items: center; gap: 8px; }
+        .color-picker-group input[type="color"] {
+            border: none; width: 25px; height: 25px; border-radius: 4px;
+            cursor: pointer; padding: 0; background: none;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- Controls --- */
+        .header-btn {
+            background-color: var(--highlight-bg);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .header-btn:hover {
+            border-color: var(--text-accent);
+            color: var(--text-accent);
+        }
+
+        .pin-btn {
+            background: none; border: 1px solid var(--border-color); color: var(--text-main);
+            cursor: pointer; padding: 0 10px; border-radius: 6px; font-size: 1rem;
+            transition: background-color 0.2s; height: 34px; display: flex;
+            align-items: center; justify-content: center;
+        }
+        .pin-btn:hover { background-color: var(--highlight-bg); }
+        .pin-btn.pin-active { background-color: rgba(0, 0, 0, 0.1); }
+
+        select#theme-select {
+            padding: 0 12px; border-radius: 6px; border: 1px solid var(--border-color);
+            background-color: var(--bg-card); color: var(--text-main);
+            cursor: pointer; font-family: inherit; height: 34px;
+        }
+
+        /* --- Section Navigation --- */
+        .section-nav { display: flex; gap: 10px; flex-wrap: wrap; }
+        .section-nav button {
+            background-color: var(--highlight-bg); color: var(--text-main);
+            border: 1px solid var(--border-color); padding: 6px 12px;
+            border-radius: 6px; cursor: pointer; font-size: 0.85rem;
+            font-weight: 500; transition: all 0.2s;
+        }
+        .section-nav button:hover { border-color: var(--text-accent); color: var(--text-accent); }
+
+        /* --- Main Content --- */
+        .container {
+            max-width: 850px;
+            margin: 2rem auto;
+            padding: 0 1rem 4rem 1rem;
+        }
+
+        .section-header {
+            margin-top: 3rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--text-accent);
+            color: var(--text-accent);
+            font-size: 1.5rem;
+            font-weight: 700;
+            scroll-margin-top: 150px; /* Offset for sticky header */
+        }
+
+        /* --- Question Card --- */
+        .question-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .lo-box {
+            background-color: var(--highlight-bg);
+            border-left: 4px solid var(--text-accent);
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            font-style: italic;
+            display: none; /* Hidden by default */
+        }
+
+        .question-text {
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        /* --- Options --- */
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .option-label {
+            display: flex;
+            align-items: flex-start;
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .option-label:hover {
+            background-color: var(--highlight-bg);
+            border-color: var(--text-muted);
+        }
+
+        .option-label input {
+            margin-top: 0.3rem;
+            margin-right: 1rem;
+            accent-color: var(--text-accent);
+            transform: scale(1.2);
+        }
+
+        /* --- Buttons --- */
+        .btn-check {
+            margin-top: 1.5rem;
+            background-color: var(--button-bg);
+            color: var(--button-text);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            font-size: 1rem;
+        }
+
+        .btn-check:hover {
+            opacity: 0.9;
+        }
+
+        .btn-link {
+            display: inline-block;
+            background-color: var(--button-bg);
+            color: var(--button-text);
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: opacity 0.2s;
+            font-size: 1rem;
+        }
+
+        .btn-link:hover {
+            opacity: 0.9;
+        }
+
+        /* --- Feedback Area --- */
+        .feedback {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            border-radius: 8px;
+            display: none; /* Hidden by default */
+            border: 1px solid transparent;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .feedback.correct {
+            background-color: var(--feedback-success-bg);
+            border-color: var(--feedback-success-border);
+            color: var(--feedback-success-text);
+        }
+
+        .feedback.incorrect {
+            background-color: var(--feedback-error-bg);
+            border-color: var(--feedback-error-border);
+            color: var(--feedback-error-text);
+        }
+
+        .feedback-header {
+            font-weight: 800;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .rationale {
+            margin-top: 1rem;
+            font-size: 0.95rem;
+        }
+
+        .source {
+            display: block;
+            margin-top: 1rem;
+            font-size: 0.85rem;
+            opacity: 0.8;
+            font-style: italic;
+            border-top: 1px dashed currentColor;
+            padding-top: 0.5rem;
+        }
+
+        /* --- Mobile Tweaks --- */
+        @media (max-width: 768px) {
+            .header-top { flex-direction: column; align-items: flex-start; }
+            .controls-wrapper { width: 100%; justify-content: flex-start; }
+            .section-nav { justify-content: flex-start; }
+            .custom-builder { justify-content: flex-start; }
+            header h1 { font-size: 1.25rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header id="main-header">
+        <div class="header-top">
+            <h1>TBL Practice Quiz</h1>
+            <div class="controls-wrapper">
+                
+                <!-- Reveal LOs Button -->
+                <button id="reveal-all-btn" class="header-btn" onclick="toggleAllLOs()">Show Learning Objectives</button>
+                
+                <!-- Pin Button -->
+                <button class="pin-btn pin-active" id="pin-btn" onclick="toggleHeader()" title="Pin/Unpin Header">📌</button>
+                
+                <!-- Theme Selector -->
+                <div class="theme-control">
+                    <select id="theme-select" onchange="changeTheme(this.value)">
+                        <option value="dark">Modern Dark</option>
+                        <option value="midnight">Midnight</option>
+                        <option value="light">Modern Light</option>
+                        <option value="legacy-dark">Legacy Dark</option>
+                        <option value="sepia">Sepia</option>
+                        <option value="contrast">High Contrast</option>
+                        <option value="custom">⚙️ Custom...</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Custom Theme Color Pickers -->
+            <div class="custom-builder" id="custom-builder">
+                <div class="color-picker-group">
+                    <label>Background:</label>
+                    <input type="color" id="color-bg" value="#1a1a2e" oninput="updateCustomTheme()">
+                </div>
+                <div class="color-picker-group">
+                    <label>Cards:</label>
+                    <input type="color" id="color-card" value="#16213e" oninput="updateCustomTheme()">
+                </div>
+                <div class="color-picker-group">
+                    <label>Text:</label>
+                    <input type="color" id="color-text" value="#e94560" oninput="updateCustomTheme()">
+                </div>
+                <div class="color-picker-group">
+                    <label>Accent:</label>
+                    <input type="color" id="color-accent" value="#0f3460" oninput="updateCustomTheme()">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Dynamic Navigation Bar -->
+        <div class="section-nav" id="section-nav"></div>
+    </header>
+
+    <div class="container">
+        
+        <div id="quiz-root">
+            <!-- Content injected via JS -->
+        </div>
+
+    </div>
+
+    <script>
+        // --- Data ---
+        const quizData = [
+            // --- Section 1: Hepatic Serologies TBL ---
+            {
+                section: "Hepatic Serologies TBL",
+                fullLO: "LO1: Review the histologic features and clinical presentation of the hepatitis viruses (A, B, C, D, E).",
+                question: "A 6-year-old boy attending a crowded daytime nursery develops an acute illness characterized by fever, nausea, abdominal pain, and jaundice. Several other children in the nursery have developed similar symptoms over the past week. His symptoms resolve completely after 4 weeks. Given the likely fecal-oral transmission of this pathogen, which of the following best describes the long-term clinical course of this specific viral infection?",
+                options: {
+                    A: "High risk of developing hepatocellular carcinoma",
+                    B: "High risk of developing polyarteritis nodosa",
+                    C: "It establishes a chronic infection in 85% of cases",
+                    D: "It has no chronic state and is strictly self-limited",
+                    E: "It requires a concurrent DNA virus infection to replicate"
+                },
+                correctAnswer: "D",
+                rationale: "Hepatitis A is transmitted via the fecal-oral route, frequently causing epidemics in schools and nurseries. It causes an acute, self-limited disease that usually resolves in 2-6 weeks and, notably, has no chronic state.",
+                source: "Pathology of the Liver PDF (Week 39), slide 23: 'Hepatitis A • Acute, self-limited –usually, 2-6 weeks • Jaundice, fever, nausea/vomiting, abdominal pain... • No chronic state • Fecal-oral... • Epidemics • Schools, nurseries, overcrowded, unsanitary conditions'"
+            },
+            {
+                section: "Hepatic Serologies TBL",
+                fullLO: "LO1: Review the histologic features and clinical presentation of the hepatitis viruses (A, B, C, D, E).",
+                question: "A 35-year-old man with a history of intravenous drug abuse presents with painful hepatomegaly and profound malaise. A liver biopsy is performed to evaluate the extent of his disease. The pathologist notes dense mononuclear portal infiltrates and large, pale, finely granular pink cytoplasmic inclusions within the hepatocytes. These specific inclusions are uniquely characteristic of which of the following processes?",
+                options: {
+                    A: "Accumulation of Hepatitis B surface antigen",
+                    B: "Accumulation of intracellular triglycerides",
+                    C: "Autoimmune destruction of intrahepatic bile ducts",
+                    D: "Deposition of excess dietary copper",
+                    E: "Mitochondrial damage leading to microvesicular steatosis"
+                },
+                correctAnswer: "A",
+                rationale: "In Hepatitis B infection, the characteristic histological finding is \"ground-glass hepatocytes.\" These appear as large, pale, finely granular pink cytoplasmic inclusions, which are directly caused by the accumulation of Hepatitis B surface antigen (HBsAg).",
+                source: "Pathology of the Liver PDF (Week 39), slide 25: 'Ground-glass hepatocytes in chronic hepatitis B infection caused by accumulation of hepatitis B surface antigen. Note the large pale, finely granular pink cytoplasmic inclusions on hematoxylin and eosin staining'"
+            },
+            {
+                section: "Hepatic Serologies TBL",
+                fullLO: "LO1: Review the histologic features and clinical presentation of the hepatitis viruses (A, B, C, D, E).",
+                question: "A 50-year-old man who received a blood transfusion 25 years ago presents with chronic fatigue. Laboratory testing is positive for viral RNA, confirming an ongoing infection. His physician notes that this specific virus is the most common main indication for liver transplantation in the USA. A liver biopsy of this patient is most likely to show which of the following characteristic findings?",
+                options: {
+                    A: "Bland, abrupt centrilobular necrosis",
+                    B: "Dense mononuclear portal infiltrates (lymphocytes)",
+                    C: "Granulomatous destruction of bile ducts",
+                    D: "Mallory-Denk bodies",
+                    E: "Microvesicular steatosis"
+                },
+                correctAnswer: "B",
+                rationale: "The patient has a Hepatitis C (HCV) infection, which frequently progresses to a chronic state (85% of untreated cases) and is the leading cause of liver transplantation. Chronic viral hepatitis is histologically characterized by dense mononuclear portal infiltrates (lymphocytes) and portal tract expansion.",
+                source: "Pathology of the Liver PDF (Week 39), slides 24 & 27: 'Hepatitis C • Parenteral transmission... • Chronic disease occurs in most cases • HCV-RNA test confirms infection • Most common main indication for liver transplantation in USA' AND 'Viral Hepatitis Chronic Phase... • Dense mononuclear portal infiltrates (lymphocytes) • Defining lesion of chronic hepatitis'"
+            },
+            {
+                section: "Hepatic Serologies TBL",
+                fullLO: "LO1: Review the histologic features and clinical presentation of the hepatitis viruses (A, B, C, D, E).",
+                question: "A 40-year-old man with a known chronic Hepatitis B infection presents to the emergency department with a sudden, severe worsening of his fatigue, jaundice, and right upper quadrant pain. Laboratory testing reveals markedly elevated AST and ALT levels. Interestingly, his HBV DNA levels have not increased from his baseline. Which of the following is the most likely cause of his acute clinical deterioration?",
+                options: {
+                    A: "Coinfection with Hepatitis D",
+                    B: "Development of Hepatitis A",
+                    C: "Malignant transformation to hepatocellular carcinoma",
+                    D: "Reactivation of Hepatitis C",
+                    E: "Spontaneous clearance of Hepatitis B"
+                },
+                correctAnswer: "A",
+                rationale: "Hepatitis D requires coinfection with Hepatitis B to cause disease. It should be strongly suspected when a patient with a known HBV infection suddenly worsens, but their HBV DNA levels do not show a corresponding increase.",
+                source: "Pathology of the Liver PDF (Week 39), slide 29: 'Hepatitis D- • requires coinfection with HBV to cause disease... • Suspect with HBV infected person worsens but no increased HBV DNA levels'"
+            },
+            {
+                section: "Hepatic Serologies TBL",
+                fullLO: "LO1: Review the histologic features and clinical presentation of the hepatitis viruses (A, B, C, D, E).",
+                question: "A 30-year-old man is receiving intense immunosuppressive therapy following a recent renal transplant. He develops a viral hepatitis that presents with a prominent cholestatic pattern. The physician recognizes that while this virus usually causes only a mild acute infection in healthy individuals, it uniquely carries a risk of chronic infection in immunosuppressed patients. Which of the following viruses is most likely responsible?",
+                options: {
+                    A: "Hepatitis A",
+                    B: "Hepatitis B",
+                    C: "Hepatitis C",
+                    D: "Hepatitis D",
+                    E: "Hepatitis E"
+                },
+                correctAnswer: "E",
+                rationale: "Hepatitis E usually causes only a mild acute hepatitis, but chronic infection is uniquely possible in immunosuppressed individuals. Furthermore, it is frequently characterized by a cholestatic clinical pattern.",
+                source: "Pathology of the Liver PDF (Week 39), slide 29: 'Hepatitis E- • Usually causes only mild acute hepatitis • Chronic infection less likely, but possible especially in immunosuppressed individuals • Frequently cholestatic'"
+            },
+            {
+                section: "Hepatic Serologies TBL",
+                fullLO: "LO2: Interpret serologic results in patients with viral hepatitis at various stages of infection.",
+                question: "A 28-year-old woman presents with a 1-week history of severe fatigue, nausea, dark-colored urine, and visually apparent jaundice. Her liver enzymes surge to > 1,000 U/L. Serological testing is ordered to evaluate for an active Hepatitis B infection. Which of the following specific serological markers is considered the defining hallmark of an acute HBV infection and would be positive in this patient?",
+                options: {
+                    A: "Anti-HBe",
+                    B: "Anti-HBs",
+                    C: "IgG anti-HBc",
+                    D: "IgM anti-HBc",
+                    E: "Total anti-HBc"
+                },
+                correctAnswer: "D",
+                rationale: "During the initial symptomatic phase (Weeks 4-12) of an acute Hepatitis B infection, liver enzymes surge and the patient is highly symptomatic. The serological profile includes positive HBsAg, positive HBeAg, and a positive IgM anti-HBc, which is considered the classic hallmark of acute infection.",
+                source: "Hepatic Serologies slide deck PDF, Slide 4: 'The Acute Phase (Weeks 4–12)... IgM anti-HBc (+): The hallmark of acute infection.'"
+            },
+            {
+                section: "Hepatic Serologies TBL",
+                fullLO: "LO2: Interpret serologic results in patients with viral hepatitis at various stages of infection.",
+                question: "A 30-year-old man had a severe acute episode of jaundice and right upper quadrant pain three months ago. He returns to the clinic stating that his jaundice has fully resolved and he feels entirely healthy again. Laboratory testing shows that his Hepatitis B surface antigen (HBsAg) has become negative, and his surface antibody (anti-HBs) has not yet appeared. Which of the following markers serves as confirmation of his current stage of infection?",
+                options: {
+                    A: "Anti-HBe",
+                    B: "HBeAg",
+                    C: "IgG anti-HBc",
+                    D: "IgM anti-HBc",
+                    E: "Viral DNA"
+                },
+                correctAnswer: "D",
+                rationale: "The patient is in the \"Core Window Period\" (Months 3-5), during which the patient feels better, HBsAg has disappeared, and anti-HBs has not yet appeared. The only diagnostic marker connecting these two phases (the window gap) is the IgM anti-HBc (or Total anti-HBc).",
+                source: "Hepatic Serologies slide deck PDF, Slide 5: 'The Core Window Period (Months 3–5)... The Diagnostic Smoking Gun: If a patient has hepatitis symptoms but HBsAg and anti-HBs are both negative, look for the core marker. Detectable Marker: IgM anti-HBc (or Total anti-HBc).'"
+            },
+            {
+                section: "Hepatic Serologies TBL",
+                fullLO: "LO2: Interpret serologic results in patients with viral hepatitis at various stages of infection.",
+                question: "A 45-year-old man presents with systemic vascular symptoms and renal dysfunction. Biopsies confirm Polyarteritis Nodosa (PAN) and Membranous Nephropathy. His physician correctly identifies these as extrahepatic manifestations driven by circulating immune complexes due to a persistent viral infection lasting over 6 months. Which of the following serologic profiles is most consistent with this patient's underlying condition?",
+                options: {
+                    A: "Negative HBsAg, Negative anti-HBs, Positive IgM anti-HBc",
+                    B: "Negative HBsAg, Positive anti-HBs, Negative IgG anti-HBc",
+                    C: "Positive HBsAg, Negative HBeAg, Negative IgG anti-HBc",
+                    D: "Positive HBsAg, Positive HBeAg, Positive IgG anti-HBc",
+                    E: "Positive HBsAg, Positive anti-HBs, Positive IgM anti-HBc"
+                },
+                correctAnswer: "D",
+                rationale: "Polyarteritis Nodosa (PAN) and Membranous Nephropathy are high-yield board associations that signal a Chronic Hepatitis B infection. The chronic profile with high infectivity is characterized by the persistence of HBsAg (beyond 6 months), positive HBeAg (continued viral replication), positive IgG anti-HBc (transition from acute to chronic), and negative anti-HBs.",
+                source: "Hepatic Serologies slide deck PDF, Slides 7 & 11: 'High-Yield Board Associations: If a clinical vignette emphasizes systemic vascular or renal symptoms in the context of hepatitis, they are signaling Chronic Hepatitis B. Association 1: Polyarteritis Nodosa (PAN) Association 2: Membranous Nephropathy' AND 'The Chronic Profile (High Infectivity): • HBsAg (+) ... • HBeAg (+) ... • IgG anti-HBc (+)'"
+            },
+            {
+                section: "Hepatic Serologies TBL",
+                fullLO: "LO2: Interpret serologic results in patients with viral hepatitis at various stages of infection.",
+                question: "A 26-year-old female healthcare worker undergoes routine titer screening before beginning a new hospital rotation. Her laboratory profile demonstrates a negative HBsAg, a positive anti-HBs, and a negative anti-HBc. Based on the deductive serology framework, what is the most accurate interpretation of her hepatitis B status?",
+                options: {
+                    A: "Acute hepatitis B infection",
+                    B: "Chronic hepatitis B infection",
+                    C: "Core window period",
+                    D: "Resolved natural infection",
+                    E: "Vaccinated"
+                },
+                correctAnswer: "E",
+                rationale: "A positive anti-HBs with a negative anti-HBc specifically indicates immunity acquired through vaccination. The vaccine only contains synthetic surface antigen, so the host immune system never encounters the viral core (resulting in a negative anti-HBc). In contrast, a resolved natural infection would show a positive anti-HBs and a positive IgG anti-HBc.",
+                source: "Hepatic Serologies slide deck PDF, Slide 8: 'Natural Immunity vs. Vaccine Immunity... Vaccination • Positive for: anti-HBs ONLY. • Mechanism: The vaccine only contains synthetic surface antigen. The immune system never saw a viral core. The Differentiator -> anti-HBc (-)'"
+            },
+
+            // --- Section 2: Diabetes TBL ---
+            {
+                section: "Diabetes TBL",
+                fullLO: "LO1: Describe the various types of diabetes, discuss the common laboratory findings in diabetic patients and discuss established diagnostic criteria.",
+                question: "A 52-year-old man comes to the clinic for a routine checkup. He has a BMI of 32. He reports no classic symptoms of hyperglycemia such as excessive thirst or frequent urination. A routine laboratory test reveals a fasting plasma glucose of 135 mg/dL. He returns a week later, and his repeat fasting plasma glucose is 130 mg/dL. Based on established criteria, which of the following is the most accurate diagnosis for this patient?",
+                options: {
+                    A: "Normal glucose tolerance",
+                    B: "Prediabetes",
+                    C: "Diabetes mellitus",
+                    D: "Impaired fasting glucose",
+                    E: "Gestational diabetes"
+                },
+                correctAnswer: "C",
+                rationale: "The diagnostic criteria for diabetes include a fasting plasma glucose (fasting 8 hours) of > 126 mg/dL. Since the patient's fasting glucose levels are 135 mg/dL and 130 mg/dL on two separate occasions, he meets the established laboratory criteria for diabetes.",
+                source: "Diabetes TBL PDF, Page 1: 'Diagnostic Criteria for Diabetes Mellitus in General: ... Fasting plasma glucose (fasting 8 hours) ... Diabetes: > 126 mg/dL'"
+            },
+            {
+                section: "Diabetes TBL",
+                fullLO: "LO1: Describe the various types of diabetes, discuss the common laboratory findings in diabetic patients and discuss established diagnostic criteria.",
+                question: "A 19-year-old man presents for evaluation of mild, asymptomatic hyperglycemia detected on a routine college sports physical. His BMI is 21. His father and paternal grandfather both developed mild diabetes in their early twenties. Laboratory testing shows a normal fasting plasma C-peptide level and an absence of islet autoantibodies (e.g., GADA, ICA). Which of the following is the most likely diagnosis?",
+                options: {
+                    A: "Type 1 diabetes mellitus (T1DM)",
+                    B: "Type 2 diabetes mellitus (T2DM)",
+                    C: "Maturity onset diabetes of the young (MODY)",
+                    D: "Latent autoimmune diabetes in adults (LADA)",
+                    E: "Psychogenic polydipsia"
+                },
+                correctAnswer: "C",
+                rationale: "MODY is characterized by an early onset (< 25 years), autosomal dominant inheritance (strong multigenerational family presence), normal body weight, absence of islet autoantibodies, and the presence of pancreatic residual function (indicated by normal C-peptide levels). T1DM would present with autoantibodies and very low/absent C-peptide. T2DM typically presents in overweight/obese individuals and is polygenic.",
+                source: "Diabetes TBL PDF, Page 3: 'Maturity onset diabetes of the young (MODY)... being characterized by b-cell dysfunction, early onset (< 25 years), and autosomal dominant inheritance... the presence of pancreatic residual function (as determined by the presence of plasma C-peptide) and absence of islet autoimmunity seem to be the most promising clinical instruments to suspect MODY.'"
+            },
+            {
+                section: "Diabetes TBL",
+                fullLO: "LO1: Describe the various types of diabetes, discuss the common laboratory findings in diabetic patients and discuss established diagnostic criteria.",
+                question: "A full-term male newborn is delivered to a 34-year-old mother who had poorly controlled gestational diabetes mellitus (GDM) during her pregnancy. The newborn is significantly larger than normal for his gestational age. Thirty minutes after delivery, the newborn becomes jittery and lethargic. Which of the following laboratory abnormalities is most likely to be present in this newborn immediately after delivery?",
+                options: {
+                    A: "Hyperglycemia",
+                    B: "Hypoglycemia",
+                    C: "Hypoinsulinemia",
+                    D: "Ketoacidosis",
+                    E: "Hyperglucagonemia"
+                },
+                correctAnswer: "B",
+                rationale: "Infants born to mothers with poorly controlled GDM have been exposed to consistently high maternal blood sugar, causing the fetus to produce high levels of insulin. After delivery, the baby continues to have high circulating insulin levels but no longer receives the high sugar supply from the mother, resulting in immediate neonatal hypoglycemia.",
+                source: "Diabetes TBL PDF, Page 5: 'Hypoglycemia – low blood sugar in the baby immediately after delivery. This problem occurs if the mother's blood sugar levels have been consistently high, causing the fetus to have a high level of insulin in its circulation. After delivery, the baby continues to have a high insulin level, but it no longer has the high level of sugar from its mother, resulting in the newborn's blood sugar level becoming very low.'"
+            },
+            {
+                section: "Diabetes TBL",
+                fullLO: "LO2: Apply your knowledge of hormonal regulation of metabolic pathways involving primarily carbohydrates and lipids from past lectures to case scenarios involving diabetic patients.",
+                question: "A 49-year-old woman with type 2 diabetes mellitus administers her prescribed dose of detemir insulin. At the cellular level in her liver, this exogenous insulin stimulates glycolysis and inhibits gluconeogenesis. This metabolic shift is primarily mediated by an insulin-induced increase in the production of which of the following allosteric modulators?",
+                options: {
+                    A: "Adenosine triphosphate (ATP)",
+                    B: "Cyclic adenosine monophosphate (cAMP)",
+                    C: "Fructose-1,6-bisphosphate",
+                    D: "Fructose-2,6-bisphosphate",
+                    E: "Glucose-6-phosphate"
+                },
+                correctAnswer: "D",
+                rationale: "Insulin stimulates glycolysis and inhibits gluconeogenesis by increasing the production of fructose-2,6-bisphosphate (F-2,6-BP). F-2,6-BP is a potent allosteric activator of Phosphofructokinase-1 (PFK1) and an inhibitor of fructose-1,6-bisphosphatase (FBPase).",
+                source: "Diabetes TBL PDF, Page 7: 'Insulin stimulates glycolysis and inhibits gluconeogenesis by increasing the production of fructose-2,6-bisphosphate. With respect to the hormonal regulation of glucose metabolism, fructose-2,6-bisphosphate (F-2,6-BP) is one of the most important allosteric modulators.'"
+            },
+            {
+                section: "Diabetes TBL",
+                fullLO: "LO2: Apply your knowledge of hormonal regulation of metabolic pathways involving primarily carbohydrates and lipids from past lectures to case scenarios involving diabetic patients.",
+                question: "A 55-year-old man with type 2 diabetes is eating a meal rich in carbohydrates and fats. His endogenous insulin acts as a lipid-sparing hormone to lower his plasma triglyceride levels. It accomplishes this in part by stimulating adipocytes to synthesize and secrete an enzyme that attaches to the endothelial cells of blood vessels, where it breaks down triglycerides carried in chylomicrons and VLDL. Which of the following is the enzyme stimulated by insulin in this process?",
+                options: {
+                    A: "Glucokinase",
+                    B: "Glycogen phosphorylase",
+                    C: "Hormone-sensitive lipase (HSL)",
+                    D: "Lipoprotein lipase (LPL)",
+                    E: "Phosphofructokinase-1 (PFK-1)"
+                },
+                correctAnswer: "D",
+                rationale: "Insulin stimulates adipocytes to synthesize lipoprotein lipase (LPL). LPL attaches to endothelial cells and breaks down triglycerides (TGs) in circulating chylomicrons and VLDL into free fatty acids and glycerol, allowing the free fatty acids to be taken up and stored by the underlying adipocytes. Conversely, insulin inhibits hormone-sensitive lipase (HSL), which breaks down stored fat.",
+                source: "Diabetes TBL PDF, Page 9: 'Insulin stimulates the synthesis of lipoprotein lipase (LPL) by adipocytes... LPL is the primary enzyme involved in reducing the triglyceride levels in the blood. Insulin stimulates the synthesis of LPL by adipocytes so that the dietary TGs from the chylomicrons and the TGs synthesized in the liver from excess calories can be stored in the adipocytes.'"
+            },
+            {
+                section: "Diabetes TBL",
+                fullLO: "LO2: Apply your knowledge of hormonal regulation of metabolic pathways involving primarily carbohydrates and lipids from past lectures to case scenarios involving diabetic patients.",
+                question: "A 45-year-old man with type 2 diabetes is prescribed glipizide, a sulfonylurea medication, to help control his blood glucose levels. This drug binds to a specific subunit of an ion channel on the pancreatic beta-cell membrane, causing the channel to close. This closure depolarizes the cell and triggers insulin release. Which of the following specific channels is blocked by this medication?",
+                options: {
+                    A: "ATP-gated potassium channel",
+                    B: "Voltage-gated calcium channel",
+                    C: "Voltage-gated sodium channel",
+                    D: "Ligand-gated chloride channel",
+                    E: "cAMP-gated calcium channel"
+                },
+                correctAnswer: "A",
+                rationale: "In pancreatic beta-cells, an increase in the ATP/ADP ratio closes ATP-gated potassium channels, leading to cell depolarization, opening of voltage-gated calcium channels, and subsequent insulin secretion. Sulfonylurea drugs (like glipizide) directly bind to and block these ATP-gated potassium channels to stimulate insulin release.",
+                source: "Diabetes TBL PDF, Page 6: 'The sulfonylurea drugs bind to a subunit of the ATP-gated potassium channel and stimulate the release of insulin by blocking the potassium-channel.'"
+            },
+            {
+                section: "Diabetes TBL",
+                fullLO: "LO3: Apply the knowledge of genetics of diabetes that you learnt this week to a case scenario involving Type 2 diabetes.",
+                question: "A 49-year-old woman with a history of obesity is diagnosed with type 2 diabetes mellitus (T2DM). Her 25-year-old son, who is also obese, undergoes direct-to-consumer genetic testing and is informed he is at high risk for developing the disease. He asks his physician if his risk is determined by a single defective gene like some other inherited diseases. The physician should correctly explain that the genetic basis of type 2 diabetes is best described as:",
+                options: {
+                    A: "An autosomal dominant single-gene mutation",
+                    B: "An X-linked recessive inheritance pattern",
+                    C: "A multifactorial disease involving polygenic and environmental factors",
+                    D: "A monogenic disease involving the glucokinase (GCK) gene",
+                    E: "A chromosomal non-disjunction event"
+                },
+                correctAnswer: "C",
+                rationale: "Unlike MODY, which is a monogenic disease, Type 2 diabetes is a multifactorial disease. It involves polygenic factors (defects or changes in multiple genes) combined with significant environmental and lifestyle factors such as obesity, physical inactivity, smoking, and unhealthy diet.",
+                source: "Diabetes TBL PDF, Page 2: 'Like T1DM, the disease is multifactorial involving polygenic as well as environmental factors with lifestyle-related factors like obesity, physical inactivity, smoking, and unhealthy diet contributing to the disease.'"
+            },
+            {
+                section: "Diabetes TBL",
+                fullLO: "LO3: Apply the knowledge of genetics of diabetes that you learnt this week to a case scenario involving Type 2 diabetes.",
+                question: "A researcher is conducting a genetic and epidemiologic study on families affected by various forms of diabetes. She compares a cohort of patients with maturity onset diabetes of the young (MODY) to a cohort with type 2 diabetes mellitus (T2DM). Which of the following combinations of characteristics best distinguishes the classical etiology and presentation of T2DM from that of MODY?",
+                options: {
+                    A: "Monogenic inheritance and typical onset before age 25",
+                    B: "Polygenic inheritance and strong association with obesity and physical inactivity",
+                    C: "Polygenic inheritance and near-complete absence of C-peptide at diagnosis",
+                    D: "Monogenic inheritance and high prevalence of diabetes-related autoantibodies",
+                    E: "Autosomal dominant inheritance and normal to low body weight"
+                },
+                correctAnswer: "B",
+                rationale: "T2DM is distinguished from MODY by its multifactorial and polygenic nature, as well as its strong association with obesity and environmental lifestyle factors. MODY is a monogenic disease with an autosomal dominant inheritance pattern that typically affects individuals who are normal to overweight, but not classically associated with the severe obesity/lifestyle pathogenesis seen in T2DM.",
+                source: "Diabetes TBL PDF, Pages 2 & 3: 'Unlike T1DM and T2DM, this [MODY] is monogenic disease (meaning, change or defect in just one gene is sufficient to precipitate disease symptoms)...' AND 'Type 2... disease is multifactorial involving polygenic as well as environmental factors with lifestyle-related factors like obesity, physical inactivity...'"
+            }
+        ];
+
+        // --- Core Logic ---
+        const quizRoot = document.getElementById('quiz-root');
+        const themeSelect = document.getElementById('theme-select');
+        const pinBtn = document.getElementById('pin-btn');
+        const mainHeader = document.getElementById('main-header');
+        const sectionNav = document.getElementById('section-nav');
+        const customBuilder = document.getElementById('custom-builder');
+        const rootElements = document.documentElement;
+
+        let isRevealed = false;
+
+        function toggleAllLOs() {
+            isRevealed = !isRevealed;
+            const btn = document.getElementById('reveal-all-btn');
+            btn.textContent = isRevealed ? "Hide Learning Objectives" : "Show Learning Objectives";
+            
+            document.querySelectorAll('.lo-box').forEach(box => {
+                box.style.display = isRevealed ? 'block' : 'none';
+            });
+        }
+
+        function initQuiz() {
+            let currentSection = "";
+            let sectionIndex = 0;
+            
+            quizData.forEach((item, index) => {
+                if (item.section !== currentSection) {
+                    currentSection = item.section;
+                    
+                    const sectionId = 'sec-' + sectionIndex;
+                    
+                    const sectionHeader = document.createElement('h2');
+                    sectionHeader.className = 'section-header';
+                    sectionHeader.id = sectionId;
+                    sectionHeader.textContent = currentSection;
+                    quizRoot.appendChild(sectionHeader);
+
+                    const navBtn = document.createElement('button');
+                    let btnText = currentSection;
+                    // Format navigation button text
+                    if (btnText.includes("Hepatic Serologies")) btnText = "Hepatic Serologies TBL";
+                    if (btnText.includes("Diabetes TBL")) btnText = "Diabetes TBL";
+                    
+                    navBtn.textContent = btnText;
+                    navBtn.onclick = () => {
+                        document.getElementById(sectionId).scrollIntoView({ behavior: 'smooth' });
+                    };
+                    sectionNav.appendChild(navBtn);
+
+                    sectionIndex++;
+                }
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                card.id = `q-card-${index}`;
+
+                const loBox = document.createElement('div');
+                loBox.className = 'lo-box';
+                loBox.id = `lo-${index}`;
+                loBox.innerHTML = item.fullLO;
+                card.appendChild(loBox);
+
+                const qText = document.createElement('div');
+                qText.className = 'question-text';
+                qText.innerHTML = `${index + 1}. ${item.question}`;
+                card.appendChild(qText);
+
+                const optionsGrid = document.createElement('div');
+                optionsGrid.className = 'options-grid';
+
+                for (const[key, value] of Object.entries(item.options)) {
+                    const label = document.createElement('label');
+                    label.className = 'option-label';
+                    
+                    const input = document.createElement('input');
+                    input.type = 'radio';
+                    input.name = `question-${index}`;
+                    input.value = key;
+
+                    const span = document.createElement('span');
+                    span.innerHTML = `${key}. ${value}`;
+
+                    label.appendChild(input);
+                    label.appendChild(span);
+                    optionsGrid.appendChild(label);
+                }
+                card.appendChild(optionsGrid);
+
+                const btn = document.createElement('button');
+                btn.className = 'btn-check';
+                btn.textContent = 'Check Answer';
+                btn.onclick = () => checkAnswer(index);
+                card.appendChild(btn);
+
+                const feedback = document.createElement('div');
+                feedback.className = 'feedback';
+                feedback.id = `feedback-${index}`;
+                card.appendChild(feedback);
+
+                quizRoot.appendChild(card);
+            });
+
+            const returnContainer = document.createElement('div');
+            returnContainer.style.textAlign = 'center';
+            returnContainer.style.marginTop = '2rem';
+            
+            const returnBtn = document.createElement('a');
+            returnBtn.href = 'https://ibecerramcg.github.io/GI-GU-ENDO-Practice-Quizzes/';
+            returnBtn.className = 'btn-link';
+            returnBtn.textContent = '← Return to Quiz Directory';
+            
+            returnContainer.appendChild(returnBtn);
+            quizRoot.appendChild(returnContainer);
+
+            const savedTheme = localStorage.getItem('quizTheme') || 'dark';
+            themeSelect.value = savedTheme;
+            changeTheme(savedTheme);
+
+            const savedPinState = localStorage.getItem('headerPinned');
+            toggleHeader(savedPinState !== 'false');
+        }
+
+        function checkAnswer(index) {
+            const selected = document.querySelector(`input[name="question-${index}"]:checked`);
+            const feedbackEl = document.getElementById(`feedback-${index}`);
+            const data = quizData[index];
+
+            if (!selected) {
+                alert("Please select an answer.");
+                return;
+            }
+
+            const isCorrect = selected.value === data.correctAnswer;
+            
+            let html = `<span class="feedback-header">${isCorrect ? "Correct!" : "Incorrect"}</span>`;
+            if (!isCorrect) {
+                html += `<div>The correct answer is <strong>${data.correctAnswer}</strong>.</div>`;
+            }
+            
+            html += `<div class="rationale"><strong>Rationale:</strong> ${data.rationale}</div>`;
+            html += `<div class="source"><strong>Source:</strong> ${data.source}</div>`;
+
+            feedbackEl.innerHTML = html;
+            feedbackEl.className = `feedback ${isCorrect ? 'correct' : 'incorrect'}`;
+            feedbackEl.style.display = 'block';
+        }
+
+        function changeTheme(themeName) {
+            localStorage.setItem('quizTheme', themeName);
+            
+            if (themeName === 'custom') {
+                rootElements.removeAttribute('data-theme');
+                customBuilder.classList.add('active');
+                loadCustomTheme();
+            } else {
+                rootElements.setAttribute('data-theme', themeName);
+                customBuilder.classList.remove('active');
+                rootElements.removeAttribute('style');
+            }
+        }
+
+        function updateCustomTheme() {
+            const bg = document.getElementById('color-bg').value;
+            const card = document.getElementById('color-card').value;
+            const text = document.getElementById('color-text').value;
+            const accent = document.getElementById('color-accent').value;
+
+            rootElements.style.setProperty('--bg-body', bg);
+            rootElements.style.setProperty('--bg-header', bg);
+            rootElements.style.setProperty('--bg-card', card);
+            rootElements.style.setProperty('--highlight-bg', card);
+            rootElements.style.setProperty('--text-main', text);
+            rootElements.style.setProperty('--text-accent', accent);
+            rootElements.style.setProperty('--button-bg', accent);
+            rootElements.style.setProperty('--button-text', bg);
+            rootElements.style.setProperty('--border-color', accent + '40');
+
+            const customColors = { bg, card, text, accent };
+            localStorage.setItem('customThemeColors', JSON.stringify(customColors));
+        }
+
+        function loadCustomTheme() {
+            const savedColors = JSON.parse(localStorage.getItem('customThemeColors'));
+            if (savedColors) {
+                document.getElementById('color-bg').value = savedColors.bg;
+                document.getElementById('color-card').value = savedColors.card;
+                document.getElementById('color-text').value = savedColors.text;
+                document.getElementById('color-accent').value = savedColors.accent;
+                updateCustomTheme();
+            } else {
+                updateCustomTheme();
+            }
+        }
+
+        function toggleHeader(forceState) {
+            const isCurrentlyPinned = !mainHeader.classList.contains('unpinned');
+            const newState = (typeof forceState === 'boolean') ? forceState : !isCurrentlyPinned;
+
+            if (newState) {
+                mainHeader.classList.remove('unpinned');
+                pinBtn.classList.add('pin-active');
+                localStorage.setItem('headerPinned', 'true');
+            } else {
+                mainHeader.classList.add('unpinned');
+                pinBtn.classList.remove('pin-active');
+                localStorage.setItem('headerPinned', 'false');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initQuiz);
+
+    </script>
+</body>
+</html>
